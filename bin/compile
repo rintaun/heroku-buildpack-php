@@ -44,13 +44,11 @@ echo "-----> Bundling cURL version $CURL_VERSION"
 mkdir -p $BUILD_DIR/vendor/curl-$CURL_VERSION
 cd $BUILD_DIR/vendor/curl-$CURL_VERSION
 curl --silent --max-time 60 --location "https://s3.amazonaws.com/rintaun-heroku/curl-$CURL_VERSION.tar.gz" | tar xz
-tar zxf $LP_DIR/dist/curl-$CURL_VERSION.tar.gz
 
 echo "-----> Bundling PHP version $PHP_VERSION"
 mkdir -p $BUILD_DIR/vendor/php-$PHP_VERSION
 cd $BUILD_DIR/vendor/php-$PHP_VERSION
 curl --silent --max-time 60 --location "https://s3.amazonaws.com/rintaun-heroku/php-$PHP_VERSION.tar.gz" | tar xz
-tar zxf $LP_DIR/dist/php-$PHP_VERSION.tar.gz
 
 cd $BUILD_DIR
 
