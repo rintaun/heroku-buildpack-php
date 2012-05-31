@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
+echo "PHP" && exit 0
 
-if (find $1 *.php); then
-  echo "PHP" && exit 0
-else
-  echo "no" && exit 1
-fi
+# if [ -f $1/index.php ]; then
+#   echo "PHP" && exit 0
+# else
+#   echo "no" && exit 1
+# fi
 
