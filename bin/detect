@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if (find . *.php); then
+if (find $1 *.php); then
   echo "PHP" && exit 0
 else
   echo "no" && exit 1
