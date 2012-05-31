@@ -5,10 +5,10 @@
 set -e
 
 # config
-APACHE_VERSION="2.2.22"
-APACHE_PATH="apache"
-PHP_VERSION="5.3.10"
-PHP_PATH="php"
+PCRE_VERSION="8.30"
+HTTPD_VERSION="2.4.2"
+PHP_VERSION="5.4.3"
+CURL_VERSION="7.26.0"
 
 BIN_DIR=$(dirname $0)
 BUILD_DIR=$1
@@ -30,34 +30,46 @@ if [ -f www/Procfile ]; then
   mv www/Procfile .
 fi
 
-APACHE_URL="https://s3.amazonaws.com/php-lp/apache-$APACHE_VERSION.tar.gz"
-echo "-----> Bundling Apache version $APACHE_VERSION"
-curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
+echo "-----> Bundling LibPCRE version $PCRE_VERSION"
+mkdir -p $BUILD_DIR/vendor/pcre-$PCRE_VERSION
+cd $BUILD_DIR/vendor/pcre-$PCRE_VERSION
+curl --silent --max-time 60 --location "https://s3.amazonaws.com/rintaun-heroku/pcre-$PCRE_VERSION.tar.gz" | tar xz
 
-PHP_URL="https://s3.amazonaws.com/php-lp/php-$PHP_VERSION.tar.gz"
+echo "-----> Bundling Apache version $HTTPD_VERSION"
+mkdir -p $BUILD_DIR/vendor/httpd-$HTTPD_VERSION
+cd $BUILD_DIR/vendor/httpd-$HTTPD_VERSION
+curl --silent --max-time 60 --location "https://s3.amazonaws.com/rintaun-heroku/httpd-$HTTPD_VERSION.tar.gz" | tar xz
+
+echo "-----> Bundling cURL version $CURL_VERSION"
+mkdir -p $BUILD_DIR/vendor/curl-$CURL_VERSION
+cd $BUILD_DIR/vendor/curl-$CURL_VERSION
+curl --silent --max-time 60 --location "https://s3.amazonaws.com/rintaun-heroku/curk-$CURL_VERSION.tar.gz" | tar xz
+tar zxf $LP_DIR/dist/curl-$CURL_VERSION.tar.gz
+
 echo "-----> Bundling PHP version $PHP_VERSION"
-curl --silent --max-time 60 --location "$PHP_URL" | tar xz
+mkdir -p $BUILD_DIR/vendor/php-$PHP_VERSION
+cd $BUILD_DIR/vendor/php-$PHP_VERSION
+curl --silent --max-time 60 --location "https://s3.amazonaws.com/rintaun-heroku/php-$PHP_VERSION.tar.gz" | tar xz
+tar zxf $LP_DIR/dist/php-$PHP_VERSION.tar.gz
+
+cd $BUILD_DIR
 
 # update config files
-cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
-cp $LP_DIR/conf/php.ini php
-
-# make php available on bin
-mkdir -p bin
-ln -s /app/php/bin/php bin/php
+cp $LP_DIR/conf/httpd.conf $BUILD_DIR/vendor/httpd-$HTTPD_VERSION/conf
+cp $LP_DIR/conf/php.ini $BUILD_DIR/vendor/php-$PHP_VERSION
 
 cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
-  echo "PassEnv \$var" >> /app/apache/conf/httpd.conf;
+  echo "PassEnv \$var" >> /app/vendor/httpd-$HTTPD_VERSION/conf/httpd.conf;
 done
-touch /app/apache/logs/error_log
-touch /app/apache/logs/access_log
-tail -F /app/apache/logs/error_log &
-tail -F /app/apache/logs/access_log &
-export LD_LIBRARY_PATH=/app/php/ext
+touch /app/vendor/httpd-$HTTPD_VERSION/logs/error_log
+touch /app/vendor/httpd-$HTTPD_VERSION/logs/access_log
+tail -F /app/vendor/httpd-$HTTPD_VERSION/logs/error_log &
+tail -F /app/vendor/httpd-$HTTPD_VERSION/logs/access_log &
+# export LD_LIBRARY_PATH=/app/vendor/php-$PHP_VERSION/ext
 export PHP_INI_SCAN_DIR=/app/www
 echo "Launching apache"
-exec /app/apache/bin/httpd -DNO_DETACH
+exec /app/vendor/httpd-$HTTPD_VERSION/bin/httpd -DNO_DETACH
 EOF
 
 chmod +x boot.sh
